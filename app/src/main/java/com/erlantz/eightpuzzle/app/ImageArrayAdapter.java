@@ -70,7 +70,8 @@ public class ImageArrayAdapter extends CursorAdapter {
             list.clear();
             if (newCursor.moveToFirst()) {
                 do {
-                    list.add(new Puzzle(newCursor.getString(newCursor.getColumnIndex(PuzzleContract.PUZZLE_NAME)),
+                    list.add(new Puzzle(newCursor.getInt(newCursor.getColumnIndex(PuzzleContract._ID)),
+                            newCursor.getString(newCursor.getColumnIndex(PuzzleContract.PUZZLE_NAME)),
                             newCursor.getString(newCursor.getColumnIndex(PuzzleContract.PUZZLE_BITMAP_PATH)),
                             newCursor.getString(newCursor.getColumnIndex(PuzzleContract.PUZZLE_THUMB_PATH))));
                 } while (newCursor.moveToNext());
@@ -114,6 +115,15 @@ public class ImageArrayAdapter extends CursorAdapter {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void remove(int position) {
+        Puzzle p = list.get(position);
+        new File(p.path).delete();
+        new File(p.thumbPath).delete();
+
+        String selectionArgs[] = { String.valueOf(p.getId()) };
+        mContext.getContentResolver().delete(PuzzleContract.CONTENT_URI, PuzzleContract._ID + "=?", selectionArgs);
     }
 
     public void removeAll() {

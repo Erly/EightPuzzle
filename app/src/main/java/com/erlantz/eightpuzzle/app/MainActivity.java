@@ -20,6 +20,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.os.Build;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CursorAdapter;
 import android.widget.ListView;
@@ -135,6 +136,7 @@ public class MainActivity extends ActionBarActivity {
                 return true;
             }
             if (id == R.id.action_delete) {
+                cursorAdapter.remove(((AdapterView.AdapterContextMenuInfo)item.getMenuInfo()).position);
                 return true;
             }
             return super.onContextItemSelected(item);
