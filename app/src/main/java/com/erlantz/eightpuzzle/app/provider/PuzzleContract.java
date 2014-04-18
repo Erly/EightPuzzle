@@ -6,7 +6,7 @@ import android.net.Uri;
  * Created by erlantz on 4/04/14.
  */
 public final class PuzzleContract {
-    public static final String AUTHORITY = "com.erlantz.eightpuzzle.app.provider";
+    public static final String AUTHORITY = "com.erlantz.eightpuzzle.app.provider.PuzzleContentProvider";
     public static final Uri BASE_URI = Uri.parse("content://" + AUTHORITY + "/");
 
     // Table name
@@ -18,4 +18,5 @@ public final class PuzzleContract {
     public static final String _ID = "_id";
     public static final String PUZZLE_NAME = "name";
     public static final String PUZZLE_BITMAP_PATH = "bitmapPath";
+    public static final String PUZZLE_THUMB_PATH = "thumbPath";
 }

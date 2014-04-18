@@ -17,14 +17,15 @@ import android.net.Uri;
 public class PuzzleContentProvider extends ContentProvider {
 
     private SQLiteDatabase database;
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
     private static final String DATABASE_NAME = "Puzzles";
 
-    private static final String CREATE_TABLE = "CREAT TABLE " +
+    private static final String CREATE_TABLE = "CREATE TABLE " +
             PuzzleContract.PUZZLES_TABLE_NAME + " (" +
             PuzzleContract._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
             PuzzleContract.PUZZLE_NAME + " TEXT NOT NULL, " +
-            PuzzleContract.PUZZLE_BITMAP_PATH + " TEXT NOT NULL);";
+            PuzzleContract.PUZZLE_BITMAP_PATH + " TEXT NOT NULL, " +
+            PuzzleContract.PUZZLE_THUMB_PATH + " TEXT NOT NULL);";
 
     private static class DatabaseHelper extends SQLiteOpenHelper {
 

@@ -8,10 +8,22 @@ import android.graphics.Bitmap;
 public class Puzzle {
     String name;
     String path;
-    Bitmap image;
+    String thumbPath;
+    byte[] image;
 
-    public Puzzle(String name, String path) {
+    public Puzzle(String name, String path, String thumbPath) {
         this.name = name;
         this.path = path;
+        this.thumbPath = thumbPath;
+    }
+
+    /*public Puzzle(String name, Bitmap image) {
+        this.name = name;
+        this.image = image;
+    }*/
+
+    public Puzzle(String name, byte[] image) {
+        this.name = name;
+        this.image = image;
     }
 }

@@ -16,6 +16,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <provider
+            android:authorities="com.erlantz.eightpuzzle.app.provider.PuzzleContentProvider"
+            android:name=".provider.PuzzleContentProvider" />
     </application>
 
 </manifest>

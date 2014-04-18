@@ -8,9 +8,11 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Picture;
 import android.media.Image;
+import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Environment;
 import android.support.v4.widget.CursorAdapter;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +34,7 @@ import java.util.ArrayList;
  */
 public class ImageArrayAdapter extends CursorAdapter {
 
+    private static final String APP_DIR = "EightPuzzle/Puzzles";
     private ArrayList<Puzzle> list = new ArrayList<Puzzle>();
     private static LayoutInflater inflater = null;
     private String mImageStoragePath;
@@ -43,9 +46,17 @@ public class ImageArrayAdapter extends CursorAdapter {
         inflater = LayoutInflater.from(mContext);
 
         try {
-            File imageStorageDir = new File(Environment.getDataDirectory().getCanonicalPath(), "Images");
+            if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+                String root = mContext.getExternalFilesDir(null).getCanonicalPath();
+                if (null != root) {
+                    File imageStorageDir = new File(root, APP_DIR);
+                    imageStorageDir.mkdirs();
+                    mImageStoragePath = imageStorageDir.getCanonicalPath();
+                }
+            }
+            /*File imageStorageDir = new File(Environment.getDataDirectory().getCanonicalPath(), );
             imageStorageDir.mkdirs();
-            mImageStoragePath = imageStorageDir.getCanonicalPath();
+            mImageStoragePath = imageStorageDir.getCanonicalPath();*/
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -60,7 +71,8 @@ public class ImageArrayAdapter extends CursorAdapter {
             if (newCursor.moveToFirst()) {
                 do {
                     list.add(new Puzzle(newCursor.getString(newCursor.getColumnIndex(PuzzleContract.PUZZLE_NAME)),
-                            newCursor.getString(newCursor.getColumnIndex(PuzzleContract.PUZZLE_BITMAP_PATH))));
+                            newCursor.getString(newCursor.getColumnIndex(PuzzleContract.PUZZLE_BITMAP_PATH)),
+                            newCursor.getString(newCursor.getColumnIndex(PuzzleContract.PUZZLE_THUMB_PATH))));
                 } while (newCursor.moveToNext());
             }
         }
@@ -84,18 +96,31 @@ public class ImageArrayAdapter extends CursorAdapter {
 
     public void add(Puzzle listItem) {
         String filePath = mImageStoragePath + "/" + listItem.name;
-        if (storeBitmapToFile(listItem.image, filePath)) {
-            listItem.path = filePath;
-            list.add(listItem);
+        Log.i("Adapter", filePath);
 
-            ContentValues values = new ContentValues();
-            values.put(PuzzleContract.PUZZLE_NAME, listItem.name);
-            values.put(PuzzleContract.PUZZLE_BITMAP_PATH, listItem.path);
-            mContext.getContentResolver().insert(PuzzleContract.CONTENT_URI, values);
+        try {
+            while (!(new File(filePath).createNewFile())) filePath += "_2";
+            if (storeBitmapToFile(listItem.image, filePath)) {
+                listItem.path = filePath;
+                listItem.thumbPath = filePath + "_thumb";
+                list.add(listItem);
+
+                ContentValues values = new ContentValues();
+                values.put(PuzzleContract.PUZZLE_NAME, listItem.name);
+                values.put(PuzzleContract.PUZZLE_BITMAP_PATH, listItem.path);
+                values.put(PuzzleContract.PUZZLE_THUMB_PATH, listItem.thumbPath);
+                mContext.getContentResolver().insert(PuzzleContract.CONTENT_URI, values);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
     public void removeAll() {
+        for(Puzzle p : list) {
+            new File(p.path).delete();
+            new File(p.thumbPath).delete();
+        }
         list.clear();
 
         mContext.getContentResolver().delete(PuzzleContract.CONTENT_URI, null, null);
@@ -104,7 +129,8 @@ public class ImageArrayAdapter extends CursorAdapter {
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
         ViewHolder holder = (ViewHolder) view.getTag();
-        holder.image.setImageBitmap(getBitmapFromFile(cursor.getString(cursor.getColumnIndex(PuzzleContract.PUZZLE_BITMAP_PATH))));
+        holder.image.setImageURI(Uri.parse(cursor.getString(cursor.getColumnIndex(PuzzleContract.PUZZLE_THUMB_PATH))));
+        //holder.image.setImageBitmap(getBitmapFromFile(cursor.getString(cursor.getColumnIndex(PuzzleContract.PUZZLE_BITMAP_PATH))));
         holder.name.setText(cursor.getString(cursor.getColumnIndex(PuzzleContract.PUZZLE_NAME)));
     }
 
@@ -136,16 +162,36 @@ public class ImageArrayAdapter extends CursorAdapter {
         return BitmapFactory.decodeFile(filePath);
     }
 
-    private boolean storeBitmapToFile(Bitmap bitmap, String filePath) {
+    private boolean storeBitmapToFile(byte[] image, String filePath) {
+        FileOutputStream out = null;
         try {
-            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath));
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, bos);
+            out = new FileOutputStream(filePath);
+            out.write(image);
+            Bitmap thumbnail = null;
+            Bitmap bitmap = getBitmapFromFile(filePath);
+            float ratio = (float)bitmap.getWidth() / (float)bitmap.getHeight();
+            Log.i("Adapter", "Width/Height ratio: " + ratio);
+            if (ratio > 1)
+                thumbnail = ThumbnailUtils.extractThumbnail(bitmap, 400, (int)(400/ratio));
+            else
+                thumbnail = ThumbnailUtils.extractThumbnail(bitmap, (int)(400*ratio), 400);
+
+            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath + "_thumb"));
+            thumbnail.compress(Bitmap.CompressFormat.PNG, 70, bos);
             bos.flush();
             bos.close();
+            Log.i("Adapter", "File succesfully saved");
         } catch (FileNotFoundException e) {
+            e.printStackTrace();
             return false;
         } catch (IOException e) {
+            e.printStackTrace();
             return false;
+        } finally {
+            try {
+                out.close();
+            } catch (Exception e) {
+            }
         }
         return true;
     }

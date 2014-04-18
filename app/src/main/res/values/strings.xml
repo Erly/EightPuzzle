@@ -2,7 +2,10 @@
 <resources>
 
     <string name="app_name">EightPuzzle</string>
-    <string name="load">Load image</string>
+    <string name="action_load">Load image</string>
     <string name="action_settings">Settings</string>
+    <string name="action_rename">Rename</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_delete_all">Delete all</string>
 
 </resources>
