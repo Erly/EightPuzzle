@@ -106,15 +106,31 @@ public class ImageArrayAdapter extends CursorAdapter {
                 listItem.thumbPath = filePath + "_thumb";
                 list.add(listItem);
 
-                ContentValues values = new ContentValues();
-                values.put(PuzzleContract.PUZZLE_NAME, listItem.name);
-                values.put(PuzzleContract.PUZZLE_BITMAP_PATH, listItem.path);
-                values.put(PuzzleContract.PUZZLE_THUMB_PATH, listItem.thumbPath);
-                mContext.getContentResolver().insert(PuzzleContract.CONTENT_URI, values);
+                insert(listItem);
+
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void rename(int position, String newName) {
+        Puzzle p = list.get(position);
+        File path = new File(p.path);
+        File thumbPath = new File(p.path);
+        String filePath = mImageStoragePath + "/" + newName;
+        File newPath = new File(filePath);
+        while(newPath.exists()) {
+            filePath += "_2";
+            newPath = new File(filePath);
+        }
+        File newThumbPath = new File(filePath + "_thumb");
+        path.renameTo(newPath);
+        p.name = newName;
+        p.path = filePath;
+        p.thumbPath = filePath + "_thumb";
+
+        update(p);
     }
 
     public void remove(int position) {
@@ -134,6 +150,32 @@ public class ImageArrayAdapter extends CursorAdapter {
         list.clear();
 
         mContext.getContentResolver().delete(PuzzleContract.CONTENT_URI, null, null);
+    }
+
+    /**
+     * Inserts a puzzle in the DB.
+     * @param puzzle The new puzzle to be inserted.
+     */
+    private void insert(Puzzle puzzle) {
+        ContentValues values = new ContentValues();
+        values.put(PuzzleContract.PUZZLE_NAME, puzzle.name);
+        values.put(PuzzleContract.PUZZLE_BITMAP_PATH, puzzle.path);
+        values.put(PuzzleContract.PUZZLE_THUMB_PATH, puzzle.thumbPath);
+        mContext.getContentResolver().insert(PuzzleContract.CONTENT_URI, values);
+    }
+
+    /**
+     * Updates a puzzle data in the DB.
+     * @param updatedPuzzle The puzzle with updated attributes.
+     */
+    private void update(Puzzle updatedPuzzle) {
+        String selectionArgs[] = { String.valueOf(updatedPuzzle.getId()) };
+
+        ContentValues values = new ContentValues();
+        values.put(PuzzleContract.PUZZLE_NAME, updatedPuzzle.name);
+        values.put(PuzzleContract.PUZZLE_BITMAP_PATH, updatedPuzzle.path);
+        values.put(PuzzleContract.PUZZLE_THUMB_PATH, updatedPuzzle.thumbPath);
+        mContext.getContentResolver().update(PuzzleContract.CONTENT_URI, values,  PuzzleContract._ID + "=?", selectionArgs);
     }
 
     @Override

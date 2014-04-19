@@ -7,5 +7,6 @@
     <string name="action_rename">Rename</string>
     <string name="action_delete">Delete</string>
     <string name="action_delete_all">Delete all</string>
+    <string name="enter_new_name">New name</string>
 
 </resources>
