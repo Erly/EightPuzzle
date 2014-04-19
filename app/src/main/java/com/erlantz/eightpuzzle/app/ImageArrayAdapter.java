@@ -126,6 +126,7 @@ public class ImageArrayAdapter extends CursorAdapter {
         }
         File newThumbPath = new File(filePath + "_thumb");
         path.renameTo(newPath);
+        thumbPath.renameTo(newThumbPath);
         p.name = newName;
         p.path = filePath;
         p.thumbPath = filePath + "_thumb";
