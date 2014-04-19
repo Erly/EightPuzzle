@@ -1,17 +1,15 @@
 package com.erlantz.eightpuzzle.app;
 
 import android.app.Activity;
-import android.app.LoaderManager;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.BitmapFactory;
-import android.support.v4.app.ListFragment;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
-import android.support.v4.app.Fragment;
-import android.os.Bundle;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -19,17 +17,13 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.os.Build;
 import android.widget.AdapterView;
-import android.widget.Button;
-import android.widget.CursorAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 
 import com.erlantz.eightpuzzle.app.provider.PuzzleContract;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -94,7 +88,7 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                Bundle savedInstanceState) {
+            Bundle savedInstanceState) {
             setHasOptionsMenu(true);
             this.inflater = inflater;
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
@@ -133,6 +127,7 @@ public class MainActivity extends ActionBarActivity {
         public boolean onContextItemSelected(MenuItem item) {
             int id = item.getItemId();
             if (id == R.id.action_rename) {
+                showRenameAlertDialog(((AdapterView.AdapterContextMenuInfo)item.getMenuInfo()).position);
                 return true;
             }
             if (id == R.id.action_delete) {
@@ -200,6 +195,27 @@ public class MainActivity extends ActionBarActivity {
             intent.setAction(Intent.ACTION_GET_CONTENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             startActivityForResult(intent, GET_IMAGE_CODE);
+        }
+
+        private void showRenameAlertDialog(final int position) {
+            LayoutInflater inflater = getActivity().getLayoutInflater();
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setTitle(R.string.enter_new_name);
+            final View dialogView = inflater.inflate(R.layout.dialog_rename, null);
+            builder.setView(dialogView)
+                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            EditText newName = (EditText)dialogView.findViewById(R.id.newName);
+                            cursorAdapter.rename(position, newName.getText().toString());
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            // User cancelled the dialog. Don't do anything.
+                        }
+                    });
+            // Create the AlertDialog object and show it.
+            builder.create().show();
         }
     }
 }
